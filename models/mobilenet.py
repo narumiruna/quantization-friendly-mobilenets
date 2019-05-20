@@ -6,8 +6,7 @@ class ConvBNReLU(nn.Sequential):
     def __init__(self, in_channels, out_channels, stride=1):
         layers = [
             nn.Conv2d(in_channels, out_channels, 3, stride=stride, padding=1, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
         ]
         super(ConvBNReLU, self).__init__(*layers)
 
@@ -85,7 +84,6 @@ def main():
         y = m(x)
         print(y.size())
     print(numel(m))
-
 
 
 if __name__ == '__main__':
