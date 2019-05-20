@@ -5,7 +5,7 @@ class ConvBNReLU(nn.Sequential):
 
     def __init__(self, in_channels, out_channels, stride=1):
         layers = [
-            nn.Conv2d(in_channels, out_channels, 3, stride=stride, padding=1, bias=False),
+            nn.Conv2d(in_channels, out_channels, 3, stride=stride, padding=1, bias=True),
             nn.ReLU(inplace=True),
         ]
         super(ConvBNReLU, self).__init__(*layers)
@@ -15,7 +15,7 @@ class QuantizationFriendlySeparableConvolution(nn.Sequential):
 
     def __init__(self, in_channels, out_channels, stride):
         layers = [
-            nn.Conv2d(in_channels, in_channels, 3, stride=stride, padding=1, groups=in_channels, bias=False),  # bias?
+            nn.Conv2d(in_channels, in_channels, 3, stride=stride, padding=1, groups=in_channels, bias=True),
             nn.Conv2d(in_channels, out_channels, 1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
