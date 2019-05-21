@@ -1,11 +1,14 @@
+from __future__ import division
+
 from torch import nn
 
 
 class ConvBNReLU(nn.Sequential):
 
-    def __init__(self, in_channels, out_channels, stride=1):
+    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1):
+        padding = (kernel_size - 1) // 2
         layers = [
-            nn.Conv2d(in_channels, out_channels, 3, stride=stride, padding=1, bias=True),
+            nn.Conv2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding, bias=True),
             nn.ReLU(inplace=True),
         ]
         super(ConvBNReLU, self).__init__(*layers)
@@ -34,14 +37,13 @@ class MobileNet(nn.Module):
 
         self.features = nn.Sequential(*self._make_layers(width_mult, shallow))
         self.avg_pool = nn.AvgPool2d(7, stride=1)
-        self.classifier = nn.Linear(nearby_int(width_mult * 1024), num_classes)
+        self.classifier = ConvBNReLU(nearby_int(width_mult * 1024), num_classes, kernel_size=1)
 
     def forward(self, x):
         x = self.features(x)
         x = self.avg_pool(x)
-        x = x.view(x.size(0), -1)
         x = self.classifier(x)
-        return x
+        return x.view(x.size(0), -1)
 
     def _make_layers(self, width_mult, shallow):
         settings = [
@@ -79,7 +81,7 @@ def numel(m):
 def main():
     import torch
     x = torch.randn(1, 3, 224, 224)
-    m = MobileNet()
+    m = MobileNet(num_classes=500, width_mult=0.75, shallow=True)
     with torch.no_grad():
         y = m(x)
         print(y.size())
