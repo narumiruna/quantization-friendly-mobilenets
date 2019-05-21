@@ -11,8 +11,8 @@ def _pair(x):
     return tuple(repeat(x, 2))
 
 
-def conv(x, filters, stride=1):
-    x = layers.conv2d(x, filters, kernel_size=(3, 3), strides=_pair(stride), padding="same", use_bias=True)
+def conv(x, filters, kernel_size=3, stride=1):
+    x = layers.conv2d(x, filters, kernel_size=_pair(kernel_size), strides=_pair(stride), padding="same", use_bias=True)
     x = nn.relu(x)
     return x
 
@@ -48,7 +48,7 @@ def mobilenet(x, num_classes=1000, width_mult=1.0, shallow=False):
 
     for i, (filters, stride) in enumerate(settings):
         if i == 0:
-            x = conv(x, nearby_int(filters * width_mult), stride=stride)
+            x = conv(x, nearby_int(filters * width_mult), kernel_size=3, stride=stride)
         else:
             x = quantization_friendly_depthwise_separable_conv(x, nearby_int(filters * width_mult), stride)
 
@@ -56,7 +56,10 @@ def mobilenet(x, num_classes=1000, width_mult=1.0, shallow=False):
     x = layers.average_pooling2d(x, 7, strides=1)
 
     # linear
-    x = layers.dense(x, num_classes)
+    x = conv(x, num_classes, kernel_size=1, stride=1)
+
+    # reshape
+    x = tf.reshape(x, shape=[-1, num_classes])
 
     # softmax
     x = nn.softmax(x)
@@ -66,7 +69,7 @@ def mobilenet(x, num_classes=1000, width_mult=1.0, shallow=False):
 
 def main():
     x = tf.zeros(shape=[1, 224, 224, 3])
-    y = mobilenet(x)
+    y = mobilenet(x, num_classes=500, width_mult=0.75, shallow=True)
     print(y)
 
 
